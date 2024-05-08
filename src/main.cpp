@@ -2,6 +2,9 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <Shader.h>
+#include <VAO.h>
+#include <Texture.h>
+#include <BufferObject.h>
 #include <iostream>
 #include <math.h>
 
@@ -30,6 +33,10 @@ int main(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, title, NULL, NULL);
     if (!window) {
@@ -54,45 +61,52 @@ int main(void) {
     printf("Refresh Rate: %dHz\n", glfwGetVideoMode(glfwGetPrimaryMonitor())->refreshRate);
 
     float vertices[] = {
-        // positions         // colors
-        0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // top right
-        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f,   // bottom left
-        -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   // top left 
+        // positions         // colors          // texture coords
+        0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f,     // top right
+        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f,     // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 0.0f,     // bottom left
+        -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   0.0f, 1.0f,     // top left  
     };
     unsigned int indices[] = {  // note that we start from 0!
         0, 1, 3,   // first triangle
         1, 2, 3    // second triangle
     };
 
-    unsigned int VBO, VAO, EBO;
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-    glGenVertexArrays(1, &VAO);
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    VAO VAO1;
+    VAO1.bind();
+    BufferObject VBO(GL_ARRAY_BUFFER, (GLfloat*)vertices, sizeof(vertices), GL_STATIC_DRAW);
+    BufferObject EBO(GL_ELEMENT_ARRAY_BUFFER, (GLuint*)indices, sizeof(indices), GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    VAO1.linkVBO(VBO, 0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+
     // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    VAO1.linkVBO(VBO, 1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    // texture attribute
+    VAO1.linkVBO(VBO, 2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    VBO.unbind();
 
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    Texture texture("../Textures/container.jpg", GL_RGB);
+    Texture texture2("../Textures/awesomeface.png", GL_RGBA);
+    
+    Texture::activate(GL_TEXTURE0);
+    texture.bind();
+
+    Texture::activate(GL_TEXTURE1);
+    texture2.bind();
+    
     // be sure to activate the shader
     Shader ourShader("../Shaders/VertexShader.vs", "../Shaders/FragmentShader.fs");
-    ourShader.use();
+    ourShader.use();    // don't forget to activate/use the shader before setting uniforms!
+    ourShader.setInt("texture1", 0);
+    ourShader.setInt("texture2", 1);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -107,7 +121,7 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // draw our first rectangle
-        // glBindVertexArray(VAO);  // no need to bind it every time
+        // VAO1.bind();  // no need to bind it every time
         // glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0);    // no need to unbind it every time 
@@ -120,9 +134,9 @@ int main(void) {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    VAO1.deleteVAO();
+    VBO.deleteBuffer();
+    EBO.deleteBuffer();
     glDeleteProgram(ourShader.ID);
 
     glfwTerminate();
