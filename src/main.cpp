@@ -7,6 +7,9 @@
 #include <BufferObject.h>
 #include <iostream>
 #include <math.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 struct MousePosition {
     double x, y;
@@ -20,6 +23,7 @@ void updateTitle(GLFWwindow* window, const char* title, double fps, MousePositio
 
 const unsigned int SCR_WIDTH = 640;
 const unsigned int SCR_HEIGHT = 480;
+float mixValue = 0.2f;
 
 int main(void) {
     GLFWwindow* window;
@@ -120,6 +124,7 @@ int main(void) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        ourShader.setFloat("mixValue", mixValue);
         // draw our first rectangle
         // VAO1.bind();  // no need to bind it every time
         // glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -146,6 +151,17 @@ int main(void) {
 void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        mixValue += 0.005f; // change this value accordingly (might be too slow or too fast based on system hardware)
+        if (mixValue >= 1.0f)
+            mixValue = 1.0f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        mixValue -= 0.005f; // change this value accordingly (might be too slow or too fast based on system hardware)
+        if (mixValue <= 0.0f)
+            mixValue = 0.0f;
     }
 }
 
