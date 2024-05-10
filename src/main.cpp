@@ -7,7 +7,9 @@
 #include <Texture.h>
 #include <BufferObject.h>
 #include <iostream>
+#include <vector>
 #include <math.h>
+#include <Mesh.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -28,6 +30,7 @@ float lastX = 0, lastY = 0;
 void calculateDeltaTime();
 void processInput(GLFWwindow* window);
 double calculateFPS(GLFWwindow* window);
+void calculateMousePos(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -135,41 +138,109 @@ int main(void) {
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
-    VAO VAO1;
-    VAO1.bind();
-    BufferObject VBO(GL_ARRAY_BUFFER, (GLfloat*)vertices, sizeof(vertices), GL_STATIC_DRAW);
+    std::vector<glm::vec3> verticesVec = {
+        {-0.5f, -0.5f, -0.5f},
+        {0.5f, -0.5f, -0.5f},
+        {0.5f,  0.5f, -0.5f},
+        {0.5f,  0.5f, -0.5f},
+        {-0.5f,  0.5f, -0.5f},
+        {-0.5f, -0.5f, -0.5f},
 
-    // position attribute
-    VAO1.linkVBO(VBO, 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        {-0.5f, -0.5f,  0.5f},
+        {0.5f, -0.5f,  0.5f},
+        {0.5f,  0.5f,  0.5f},
+        {0.5f,  0.5f,  0.5f},
+        {-0.5f,  0.5f,  0.5f},
+        {-0.5f, -0.5f,  0.5f},
 
-    // texture attribute
-    VAO1.linkVBO(VBO, 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        {-0.5f,  0.5f,  0.5f},
+        {-0.5f,  0.5f, -0.5f},
+        {-0.5f, -0.5f, -0.5f},
+        {-0.5f, -0.5f, -0.5f},
+        {-0.5f, -0.5f,  0.5f},
+        {-0.5f,  0.5f,  0.5f},
 
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    VBO.unbind();
+        {0.5f,  0.5f,  0.5f},
+        {0.5f,  0.5f, -0.5f},
+        {0.5f, -0.5f, -0.5f},
+        {0.5f, -0.5f, -0.5f},
+        {0.5f, -0.5f,  0.5f},
+        {0.5f,  0.5f,  0.5f},
+
+        {-0.5f, -0.5f, -0.5f},
+        {0.5f, -0.5f, -0.5f},
+        {0.5f, -0.5f,  0.5f},
+        {0.5f, -0.5f,  0.5f},
+        {-0.5f, -0.5f,  0.5f},
+        {-0.5f, -0.5f, -0.5f},
+
+        {-0.5f,  0.5f, -0.5f},
+        {0.5f,  0.5f, -0.5f},
+        {0.5f,  0.5f,  0.5f},
+        {0.5f,  0.5f,  0.5f},
+        {-0.5f,  0.5f,  0.5f},
+        {-0.5f,  0.5f, -0.5f},
+    };
+
+    std::vector<glm::vec2> texCoords = {
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
+        {0.0f, 0.0f},
+
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
+        {0.0f, 0.0f},
+
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
+        {0.0f, 1.0f},
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
+        {0.0f, 1.0f},
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+
+        {0.0f, 1.0f},
+        {1.0f, 1.0f},
+        {1.0f, 0.0f},
+        {1.0f, 0.0f},
+        {0.0f, 0.0f},
+        {0.0f, 1.0f},
+
+        {0.0f, 1.0f},
+        {1.0f, 1.0f},
+        {1.0f, 0.0f},
+        {1.0f, 0.0f},
+        {0.0f, 0.0f},
+        {0.0f, 1.0f},
+    };
 
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    Texture texture("../Textures/container.jpg", GL_RGB);
+    Texture texture("../Textures/wall.jpg", GL_RGB);
     Texture texture2("../Textures/awesomeface.png", GL_RGBA);
-
-    Texture::activate(GL_TEXTURE0);
-    texture.bind();
-
-    Texture::activate(GL_TEXTURE1);
-    texture2.bind();
 
     // be sure to activate the shader
     Shader ourShader("../Shaders/VertexShader.vs", "../Shaders/FragmentShader.fs");
     ourShader.use();    // don't forget to activate/use the shader before setting uniforms!
-    ourShader.setInt("texture1", 0);
-    ourShader.setInt("texture2", 1);
 
     // configure global opengl state
     // -----------------------------
+    glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetMouseButtonCallback(window, mouseClick_callback);
@@ -177,10 +248,8 @@ int main(void) {
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
         calculateDeltaTime();
-        // Close window on ESC key press
         processInput(window);
-
-        // update window title with FPS and cursor position
+        calculateMousePos(window);
         updateTitle(window, title, calculateFPS(window));
 
         /* Render here */
@@ -194,18 +263,22 @@ int main(void) {
         projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         ourShader.setMat4("projection", projection);
 
-        ourShader.setFloat("mixValue", mixValue);
-
         // create transformations
         for (unsigned int i = 0; i < 10; i++) {
+            Mesh cube(verticesVec, texCoords);
+            cube.position = cubePositions[i];
+            cube.scale = glm::vec3(1.0f, 1.0f, 1.0f);
+            if (i < 5)
+                cube.textures.push_back(texture);
+            else
+                cube.textures.push_back(texture2);
+
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             ourShader.setMat4("model", model);
 
             // render the cube
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            cube.draw(ourShader);
         }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -216,8 +289,6 @@ int main(void) {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    VAO1.deleteVAO();
-    VBO.deleteBuffer();
     glDeleteProgram(ourShader.ID);
 
     glfwTerminate();
@@ -233,17 +304,6 @@ void calculateDeltaTime() {
 void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        mixValue += 0.005f; // change this value accordingly (might be too slow or too fast based on system hardware)
-        if (mixValue >= 1.0f)
-            mixValue = 1.0f;
-    }
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        mixValue -= 0.005f; // change this value accordingly (might be too slow or too fast based on system hardware)
-        if (mixValue <= 0.0f)
-            mixValue = 0.0f;
     }
 
     if (camMode) {
@@ -274,10 +334,14 @@ double calculateFPS(GLFWwindow* window) {
     return fps;
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+void calculateMousePos(GLFWwindow* window) {
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
     cursorPos.x = xpos;
     cursorPos.y = ypos;
+}
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;
     lastX = xpos;

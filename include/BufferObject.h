@@ -14,6 +14,8 @@ public:
     void unbind();
     // Deletes the VBO
     void deleteBuffer();
+    // Updates a portion of the buffer's data store
+    void updateData(GLintptr offset, GLsizeiptr size, const void* data);
 };
 
 #endif
