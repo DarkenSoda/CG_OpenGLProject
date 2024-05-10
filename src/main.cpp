@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <Shader.h>
+#include <Camera.h>
 #include <VAO.h>
 #include <Texture.h>
 #include <BufferObject.h>
@@ -15,11 +16,23 @@ struct MousePosition {
     double x, y;
 };
 
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+
+MousePosition cursorPos = { 0.0, 0.0 };
+
+bool camMode = false;
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = 0, lastY = 0;
+
+void calculateDeltaTime();
 void processInput(GLFWwindow* window);
 double calculateFPS(GLFWwindow* window);
-MousePosition cursorPosition(GLFWwindow* window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void updateTitle(GLFWwindow* window, const char* title, double fps, MousePosition cursorPos);
+void updateTitle(GLFWwindow* window, const char* title, double fps);
+void mouseClick_callback(GLFWwindow* window, int button, int action, int mods);
 
 unsigned int SCR_WIDTH = 640;
 unsigned int SCR_HEIGHT = 480;
@@ -156,28 +169,31 @@ int main(void) {
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouseClick_callback);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
+        calculateDeltaTime();
         // Close window on ESC key press
         processInput(window);
 
         // update window title with FPS and cursor position
-        updateTitle(window, title, calculateFPS(window), cursorPosition(window));
+        updateTitle(window, title, calculateFPS(window));
 
         /* Render here */
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // movePosition(window, ourShader);
-
-        glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 projection = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        projection = glm::perspective(glm::radians(60.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
+        glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("view", view);
+
+        glm::mat4 projection = glm::mat4(1.0f);
+        projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         ourShader.setMat4("projection", projection);
+
         ourShader.setFloat("mixValue", mixValue);
 
         // create transformations
@@ -208,6 +224,12 @@ int main(void) {
     return 0;
 }
 
+void calculateDeltaTime() {
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+}
+
 void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
@@ -222,6 +244,17 @@ void processInput(GLFWwindow* window) {
         mixValue -= 0.005f; // change this value accordingly (might be too slow or too fast based on system hardware)
         if (mixValue <= 0.0f)
             mixValue = 0.0f;
+    }
+
+    if (camMode) {
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            camera.processKeyboard(FORWARD, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            camera.processKeyboard(BACKWARD, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            camera.processKeyboard(LEFT, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            camera.processKeyboard(RIGHT, deltaTime);
     }
 }
 
@@ -241,12 +274,22 @@ double calculateFPS(GLFWwindow* window) {
     return fps;
 }
 
-MousePosition cursorPosition(GLFWwindow* window) {
-    double xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    cursorPos.x = xpos;
+    cursorPos.y = ypos;
 
-    // Update window title with cursor position
-    return { xpos, ypos };
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    if (!camMode) return;
+
+    camera.processMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    camera.processMouseScroll(static_cast<float>(yoffset));
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -255,8 +298,17 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void updateTitle(GLFWwindow* window, const char* title, double fps, MousePosition cursorPos) {
+void updateTitle(GLFWwindow* window, const char* title, double fps) {
     char newTitle[256];
     sprintf(newTitle, "%s | FPS: %.1f | Cursor Position: %.0f, %.0f", title, fps, cursorPos.x, cursorPos.y);
     glfwSetWindowTitle(window, newTitle);
+}
+
+void mouseClick_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+        camMode = true;
+    }
+    else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
+        camMode = false;
+    }
 }
