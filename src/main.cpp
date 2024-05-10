@@ -21,8 +21,8 @@ MousePosition cursorPosition(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void updateTitle(GLFWwindow* window, const char* title, double fps, MousePosition cursorPos);
 
-const unsigned int SCR_WIDTH = 640;
-const unsigned int SCR_HEIGHT = 480;
+unsigned int SCR_WIDTH = 640;
+unsigned int SCR_HEIGHT = 480;
 float mixValue = 0.2f;
 
 int main(void) {
@@ -65,31 +65,72 @@ int main(void) {
     printf("Refresh Rate: %dHz\n", glfwGetVideoMode(glfwGetPrimaryMonitor())->refreshRate);
 
     float vertices[] = {
-        // positions         // colors          // texture coords
-        0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   1.0f, 1.0f,     // top right
-        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f,     // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 0.0f,     // bottom left
-        -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   0.0f, 1.0f,     // top left  
-    };
-    unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
+        // positions            // texture coords
+        -0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,     1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,    0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,     1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,     1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,     1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,    0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,    1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,    1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,    0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,    0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,    1.0f, 0.0f,
+
+        0.5f,  0.5f,  0.5f,     1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,     0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,     0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,     0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,     1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,    0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,     1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,     1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,     1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,    0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,    0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,     1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,     1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,    0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,    0.0f, 1.0f,
     };
 
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
 
     VAO VAO1;
     VAO1.bind();
     BufferObject VBO(GL_ARRAY_BUFFER, (GLfloat*)vertices, sizeof(vertices), GL_STATIC_DRAW);
-    BufferObject EBO(GL_ELEMENT_ARRAY_BUFFER, (GLuint*)indices, sizeof(indices), GL_STATIC_DRAW);
 
     // position attribute
-    VAO1.linkVBO(VBO, 0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-
-    // color attribute
-    VAO1.linkVBO(VBO, 1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    VAO1.linkVBO(VBO, 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 
     // texture attribute
-    VAO1.linkVBO(VBO, 2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    VAO1.linkVBO(VBO, 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     VBO.unbind();
@@ -99,18 +140,22 @@ int main(void) {
 
     Texture texture("../Textures/container.jpg", GL_RGB);
     Texture texture2("../Textures/awesomeface.png", GL_RGBA);
-    
+
     Texture::activate(GL_TEXTURE0);
     texture.bind();
 
     Texture::activate(GL_TEXTURE1);
     texture2.bind();
-    
+
     // be sure to activate the shader
     Shader ourShader("../Shaders/VertexShader.vs", "../Shaders/FragmentShader.fs");
     ourShader.use();    // don't forget to activate/use the shader before setting uniforms!
     ourShader.setInt("texture1", 0);
     ourShader.setInt("texture2", 1);
+
+    // configure global opengl state
+    // -----------------------------
+    glEnable(GL_DEPTH_TEST);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -122,14 +167,30 @@ int main(void) {
 
         /* Render here */
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // movePosition(window, ourShader);
+
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        projection = glm::perspective(glm::radians(60.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+        ourShader.setMat4("view", view);
+        ourShader.setMat4("projection", projection);
         ourShader.setFloat("mixValue", mixValue);
-        // draw our first rectangle
-        // VAO1.bind();  // no need to bind it every time
-        // glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        // glBindVertexArray(0);    // no need to unbind it every time 
+
+        // create transformations
+        for (unsigned int i = 0; i < 10; i++) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f * i;
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            ourShader.setMat4("model", model);
+
+            // render the cube
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -141,7 +202,6 @@ int main(void) {
     // ------------------------------------------------------------------------
     VAO1.deleteVAO();
     VBO.deleteBuffer();
-    EBO.deleteBuffer();
     glDeleteProgram(ourShader.ID);
 
     glfwTerminate();
@@ -190,6 +250,8 @@ MousePosition cursorPosition(GLFWwindow* window) {
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    SCR_WIDTH = width;
+    SCR_HEIGHT = height;
     glViewport(0, 0, width, height);
 }
 
