@@ -10,6 +10,7 @@
 #include <vector>
 #include <math.h>
 #include <Mesh.h>
+#include <Assignment/Cube.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -80,51 +81,6 @@ int main(void) {
     printf("OpenGL version: %s\n", glGetString(GL_VERSION));
     printf("Refresh Rate: %dHz\n", glfwGetVideoMode(glfwGetPrimaryMonitor())->refreshRate);
 
-    float vertices[] = {
-        // positions            // texture coords
-        -0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,     1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,    0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,     1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,     1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,     1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,    0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,    1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,    1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,    0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,    0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,    1.0f, 0.0f,
-
-        0.5f,  0.5f,  0.5f,     1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,     0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,     0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,     0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,     1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,    0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,     1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,     1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,     1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,    0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,    0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,     1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,     1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,    0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,    0.0f, 1.0f,
-    };
-
     glm::vec3 cubePositions[] = {
         glm::vec3(0.0f,  0.0f,  0.0f),
         glm::vec3(2.0f,  5.0f, -15.0f),
@@ -137,97 +93,6 @@ int main(void) {
         glm::vec3(1.5f,  0.2f, -1.5f),
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
-
-    std::vector<glm::vec3> verticesVec = {
-        {-0.5f, -0.5f, -0.5f},
-        {0.5f, -0.5f, -0.5f},
-        {0.5f,  0.5f, -0.5f},
-        {0.5f,  0.5f, -0.5f},
-        {-0.5f,  0.5f, -0.5f},
-        {-0.5f, -0.5f, -0.5f},
-
-        {-0.5f, -0.5f,  0.5f},
-        {0.5f, -0.5f,  0.5f},
-        {0.5f,  0.5f,  0.5f},
-        {0.5f,  0.5f,  0.5f},
-        {-0.5f,  0.5f,  0.5f},
-        {-0.5f, -0.5f,  0.5f},
-
-        {-0.5f,  0.5f,  0.5f},
-        {-0.5f,  0.5f, -0.5f},
-        {-0.5f, -0.5f, -0.5f},
-        {-0.5f, -0.5f, -0.5f},
-        {-0.5f, -0.5f,  0.5f},
-        {-0.5f,  0.5f,  0.5f},
-
-        {0.5f,  0.5f,  0.5f},
-        {0.5f,  0.5f, -0.5f},
-        {0.5f, -0.5f, -0.5f},
-        {0.5f, -0.5f, -0.5f},
-        {0.5f, -0.5f,  0.5f},
-        {0.5f,  0.5f,  0.5f},
-
-        {-0.5f, -0.5f, -0.5f},
-        {0.5f, -0.5f, -0.5f},
-        {0.5f, -0.5f,  0.5f},
-        {0.5f, -0.5f,  0.5f},
-        {-0.5f, -0.5f,  0.5f},
-        {-0.5f, -0.5f, -0.5f},
-
-        {-0.5f,  0.5f, -0.5f},
-        {0.5f,  0.5f, -0.5f},
-        {0.5f,  0.5f,  0.5f},
-        {0.5f,  0.5f,  0.5f},
-        {-0.5f,  0.5f,  0.5f},
-        {-0.5f,  0.5f, -0.5f},
-    };
-
-    std::vector<glm::vec2> texCoords = {
-        {0.0f, 0.0f},
-        {1.0f, 0.0f},
-        {1.0f, 1.0f},
-        {1.0f, 1.0f},
-        {0.0f, 1.0f},
-        {0.0f, 0.0f},
-
-        {0.0f, 0.0f},
-        {1.0f, 0.0f},
-        {1.0f, 1.0f},
-        {1.0f, 1.0f},
-        {0.0f, 1.0f},
-        {0.0f, 0.0f},
-
-        {1.0f, 0.0f},
-        {1.0f, 1.0f},
-        {0.0f, 1.0f},
-        {0.0f, 1.0f},
-        {0.0f, 0.0f},
-        {1.0f, 0.0f},
-
-        {1.0f, 0.0f},
-        {1.0f, 1.0f},
-        {0.0f, 1.0f},
-        {0.0f, 1.0f},
-        {0.0f, 0.0f},
-        {1.0f, 0.0f},
-
-        {0.0f, 1.0f},
-        {1.0f, 1.0f},
-        {1.0f, 0.0f},
-        {1.0f, 0.0f},
-        {0.0f, 0.0f},
-        {0.0f, 1.0f},
-
-        {0.0f, 1.0f},
-        {1.0f, 1.0f},
-        {1.0f, 0.0f},
-        {1.0f, 0.0f},
-        {0.0f, 0.0f},
-        {0.0f, 1.0f},
-    };
-
-    // uncomment this call to draw in wireframe polygons.
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     Texture texture("../Textures/wall.jpg", GL_RGB);
     Texture texture2("../Textures/awesomeface.png", GL_RGBA);
@@ -244,6 +109,10 @@ int main(void) {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetMouseButtonCallback(window, mouseClick_callback);
+
+
+    // uncomment this call to draw in wireframe polygons.
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -265,7 +134,7 @@ int main(void) {
 
         // create transformations
         for (unsigned int i = 0; i < 10; i++) {
-            Mesh cube(verticesVec, texCoords);
+            Cube cube;
             cube.position = cubePositions[i];
             cube.scale = glm::vec3(1.0f, 1.0f, 1.0f);
             if (i < 5)

@@ -16,20 +16,22 @@ public:
     glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
     std::vector<glm::vec3> vertices;
+    std::vector<GLuint> indices;
     std::vector<glm::vec2> texCoords;
     std::vector<Texture> textures;
 
     Mesh();
     Mesh(std::vector<glm::vec3> vertices, std::vector<Texture> textures);
     Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec2> texCoords);
+    Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec2> texCoords, std::vector<GLuint> indices);
     Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec2> texCoords, std::vector<Texture> textures);
     void draw(Shader& shader);
 
     ~Mesh();
-private:
+protected:
     VAO vao;
     BufferObject* vbo;
-
+    // BufferObject* ebo;
     void setupMesh();
 };
 

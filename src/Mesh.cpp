@@ -1,14 +1,12 @@
 #include <Mesh.h>
 
 Mesh::Mesh() {
+
 }
 
 Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<Texture> textures) {
     this->vertices = vertices;
     this->textures = textures;
-
-    vao.bind();
-    vbo = new BufferObject(GL_ARRAY_BUFFER, vertices.data(), vertices.size() * sizeof(vertices), GL_STATIC_DRAW);
 
     setupMesh();
 }
@@ -17,10 +15,6 @@ Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec2> texCoords) {
     this->vertices = vertices;
     this->texCoords = texCoords;
 
-    vao.bind();
-    size_t totalSize = vertices.size() * sizeof(glm::vec3) + texCoords.size() * sizeof(glm::vec2);
-    vbo = new BufferObject(GL_ARRAY_BUFFER, nullptr, totalSize, GL_STATIC_DRAW);
-
     setupMesh();
 }
 
@@ -28,10 +22,6 @@ Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec2> texCoords, st
     this->vertices = vertices;
     this->texCoords = texCoords;
     this->textures = textures;
-
-    vao.bind();
-    size_t totalSize = vertices.size() * sizeof(glm::vec3) + texCoords.size() * sizeof(glm::vec2);
-    vbo = new BufferObject(GL_ARRAY_BUFFER, nullptr, totalSize, GL_STATIC_DRAW);
 
     setupMesh();
 }
@@ -57,6 +47,7 @@ void Mesh::draw(Shader& shader) {
     shader.setMat4("model", model);
 
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
     vao.unbind();
 }
 
@@ -68,8 +59,10 @@ Mesh::~Mesh() {
 
 void Mesh::setupMesh() {
     vao.bind();
-    vbo->bind();
 
+    size_t totalSize = vertices.size() * sizeof(glm::vec3) + texCoords.size() * sizeof(glm::vec2);
+    vbo = new BufferObject(GL_ARRAY_BUFFER, nullptr, totalSize, GL_STATIC_DRAW);
+    vbo->bind();
     size_t offset = 0;
     vbo->updateData(offset, vertices.size() * sizeof(glm::vec3), vertices.data());
     offset += vertices.size() * sizeof(glm::vec3);
