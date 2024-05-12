@@ -27,6 +27,8 @@ Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec2> texCoords, st
 }
 
 void Mesh::draw(Shader& shader) {
+    shader.setBool("useTexture", isTextured);
+    shader.setVec4("color", color);
     for (unsigned int i = 0; i < textures.size(); i++) {
         Texture::activate(GL_TEXTURE0 + i);
         textures[i].bind();
@@ -36,7 +38,6 @@ void Mesh::draw(Shader& shader) {
     // draw mesh
     vao.bind();
 
-    glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, position);
 
     model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -44,11 +45,21 @@ void Mesh::draw(Shader& shader) {
     model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
     model = glm::scale(model, scale);
+
+
+
     shader.setMat4("model", model);
+
 
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
     vao.unbind();
+
+    for (auto& child : children) {
+        child->model = model;
+        child->draw(shader);
+    }
+    model = glm::mat4(1.0f);
 }
 
 Mesh::~Mesh() {

@@ -12,6 +12,7 @@ public:
     Texture(const char* path, GLint format);
     static void activate(GLenum textureUnit);
     void bind();
+    void unbind();
 };
 
 #endif

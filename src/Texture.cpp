@@ -4,8 +4,8 @@
 
 Texture::Texture(const char* path, GLint format) {
     glGenTextures(1, &ID);
-    glBindTexture(GL_TEXTURE_2D, ID);
-
+    bind();
+    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -21,9 +21,11 @@ Texture::Texture(const char* path, GLint format) {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture " << path << std::endl;
     }
     stbi_image_free(data);
+
+    unbind();
 }
 
 void Texture::activate(GLenum textureUnit) {
@@ -32,4 +34,8 @@ void Texture::activate(GLenum textureUnit) {
 
 void Texture::bind() {
     glBindTexture(GL_TEXTURE_2D, ID);
+}
+
+void Texture::unbind() {
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
