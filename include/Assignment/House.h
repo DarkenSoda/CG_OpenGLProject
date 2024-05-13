@@ -20,7 +20,6 @@ public:
     bool isOpened;
 
     House() {
-        Texture texture("../Textures/wall.jpg", GL_RGB);
         center.position = glm::vec3(0.0f, 1.5f, 0.0f);
         center.scale = glm::vec3(1.0f, 1.5f, 1.0f);
         float thickness = 0.1f;
