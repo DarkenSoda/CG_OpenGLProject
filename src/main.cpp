@@ -14,10 +14,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <Assignment/Cube.h>
-#include <Assignment/House.h>
-
-
 struct MousePosition {
     double x, y;
 };
@@ -46,8 +42,13 @@ unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 float mixValue = 0.2f;
 
-// Assignment Variables to be deleted
-bool isOpened;
+//! Assignment Variables to be deleted
+#include <Assignment/Cube.h>
+#include <Assignment/House.h>
+#include <Assignment/Bike.h>
+House* house;
+Bike* bike;
+bool rotateAroundStreet = false;
 
 int main(void) {
     GLFWwindow* window;
@@ -107,13 +108,10 @@ int main(void) {
     glfwSetMouseButtonCallback(window, mouseClick_callback);
     glfwSetKeyCallback(window, key_callback);
 
+    house = new House();
 
-    House house;
-    Mesh m;
-    Cube c;
-    c.position = glm::vec3(0.0f, 0.0f, 7.0f);
-
-    m.children.push_back(&c);
+    bike = new Bike();
+    bike->bikeCenter.position = glm::vec3(7.0f, 0.0f, 0.0f);
 
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -136,22 +134,16 @@ int main(void) {
         projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         ourShader.setMat4("projection", projection);
 
-        if (isOpened) {
-            if (house.doorParent.rotation.y < 90) {
-                house.doorParent.rotation.y += 200 * deltaTime;
-            }
+
+        house->draw(ourShader, deltaTime);
+        bike->draw(ourShader, deltaTime);
+
+
+        if (rotateAroundStreet) {
+            bike->autoRotateWheel(deltaTime);
+            bike->center.rotation.y += deltaTime * bike->speed;
         }
-        else {
-            if (house.doorParent.rotation.y > 0) {
-                house.doorParent.rotation.y -= 200 * deltaTime;
-            }
-        }
 
-        house.draw(ourShader);
-
-        // m.rotation = glm::vec3(m.rotation.x, glfwGetTime() * 20, m.rotation.z);
-
-        m.draw(ourShader);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -187,6 +179,21 @@ void processInput(GLFWwindow* window) {
             camera.processKeyboard(LEFT, deltaTime);
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
             camera.processKeyboard(RIGHT, deltaTime);
+    }
+
+    //! assignment to be removed
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+        bike->bikeCenter.position.x += deltaTime * bike->xSpeed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+        bike->bikeCenter.position.x -= deltaTime * bike->xSpeed;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+        bike->rotateWheelRight(deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+        bike->rotateWheelLeft(deltaTime);
     }
 }
 
@@ -249,8 +256,12 @@ void mouseClick_callback(GLFWwindow* window, int button, int action, int mods) {
     }
 }
 
+//! Assignment to be removed
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-        isOpened = !isOpened;
+        house->isOpened = !house->isOpened;
     }
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        rotateAroundStreet = !rotateAroundStreet;
 }
