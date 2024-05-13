@@ -31,13 +31,13 @@ public:
     Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec2> texCoords, std::vector<GLuint> indices);
     Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec2> texCoords, std::vector<Texture> textures);
     void draw(Shader& shader);
+    void setupMesh();
 
     virtual ~Mesh();
 protected:
     VAO vao;
     BufferObject* vbo;
     // BufferObject* ebo;
-    void setupMesh();
 };
 
 #endif

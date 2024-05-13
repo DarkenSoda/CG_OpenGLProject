@@ -46,8 +46,6 @@ void Mesh::draw(Shader& shader) {
 
     model = glm::scale(model, scale);
 
-
-
     shader.setMat4("model", model);
 
 

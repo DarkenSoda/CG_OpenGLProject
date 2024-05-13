@@ -10,10 +10,13 @@
 #include <vector>
 #include <math.h>
 #include <Mesh.h>
-#include <Assignment/Cube.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <Assignment/Cube.h>
+#include <Assignment/House.h>
+
 
 struct MousePosition {
     double x, y;
@@ -25,7 +28,7 @@ float lastFrame = 0.0f; // Time of last frame
 MousePosition cursorPos = { 0.0, 0.0 };
 
 bool camMode = false;
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(11.0f, 8.0f, 12.0f), glm::vec3(0.0f, 1.0f, 0.0f), -135.0f, -20.0f);
 float lastX = 0, lastY = 0;
 
 void calculateDeltaTime();
@@ -37,10 +40,14 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void updateTitle(GLFWwindow* window, const char* title, double fps);
 void mouseClick_callback(GLFWwindow* window, int button, int action, int mods);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-unsigned int SCR_WIDTH = 640;
-unsigned int SCR_HEIGHT = 480;
+unsigned int SCR_WIDTH = 800;
+unsigned int SCR_HEIGHT = 600;
 float mixValue = 0.2f;
+
+// Assignment Variables to be deleted
+bool isOpened;
 
 int main(void) {
     GLFWwindow* window;
@@ -86,16 +93,6 @@ int main(void) {
     Texture texture2("../Textures/container.jpg", GL_RGB);
     Texture texture3("../Textures/awesomeface.png", GL_RGBA);
 
-    Mesh houseParent, bicycleParent;
-    houseParent.position = glm::vec3(0.0f, 0.0f, -1.0f);
-    houseParent.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-    houseParent.scale = glm::vec3(0.5f, 0.5f, 0.5f);
-    Cube house;
-    house.position = glm::vec3(0.0f, 0.0f, -2.0f);
-    house.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-
-    houseParent.children.push_back(&house);
-
     // be sure to activate the shader
     Shader ourShader("../Shaders/VertexShader.vs", "../Shaders/FragmentShader.fs");
     ourShader.use();    // don't forget to activate/use the shader before setting uniforms!
@@ -108,7 +105,15 @@ int main(void) {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetMouseButtonCallback(window, mouseClick_callback);
+    glfwSetKeyCallback(window, key_callback);
 
+
+    House house;
+    Mesh m;
+    Cube c;
+    c.position = glm::vec3(0.0f, 0.0f, 7.0f);
+
+    m.children.push_back(&c);
 
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -121,7 +126,7 @@ int main(void) {
         updateTitle(window, title, calculateFPS(window));
 
         /* Render here */
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.2f, 0.45f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 view = camera.GetViewMatrix();
@@ -131,19 +136,22 @@ int main(void) {
         projection = glm::perspective(glm::radians(camera.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         ourShader.setMat4("projection", projection);
 
-        // create transformations
-        // for (unsigned int i = 0; i < 10; i++) {
-        //     HousePivot housePivot;
-        //     housePivot.position = housePivotPositions[i];
+        if (isOpened) {
+            if (house.doorParent.rotation.y < 90) {
+                house.doorParent.rotation.y += 200 * deltaTime;
+            }
+        }
+        else {
+            if (house.doorParent.rotation.y > 0) {
+                house.doorParent.rotation.y -= 200 * deltaTime;
+            }
+        }
 
-        //     // render the housePivot
-        //     housePivot.draw(ourShader);
-        // }
+        house.draw(ourShader);
 
-        houseParent.rotation = glm::vec3(houseParent.rotation.x, glfwGetTime() * 20, houseParent.rotation.z);
+        // m.rotation = glm::vec3(m.rotation.x, glfwGetTime() * 20, m.rotation.z);
 
-        houseParent.draw(ourShader);
-        // house.draw(ourShader);
+        m.draw(ourShader);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -238,5 +246,11 @@ void mouseClick_callback(GLFWwindow* window, int button, int action, int mods) {
     }
     else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
         camMode = false;
+    }
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+        isOpened = !isOpened;
     }
 }
